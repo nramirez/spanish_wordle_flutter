@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:wordle/components/qwerty.dart';
 import 'package:wordle/game_state.dart';
 
 import 'components/board.dart';
@@ -49,6 +50,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         child: Board(state: state),
       ),
+      persistentFooterButtons: const [Qwerty()],
     );
   }
 }
