@@ -1,52 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../game_state.dart';
+import '../models/letter.dart';
+import 'animated_row.dart';
 
 class Board extends StatelessWidget {
-  const Board({Key? key, required this.state}) : super(key: key);
-  final GameState state;
-
-  getRow() {
-    var idx = 0;
-    List<Widget> children = [];
-
-    while (idx < state.word.length) {
-      children.add(Container(
-        margin: const EdgeInsets.all(2),
-        decoration:
-            BoxDecoration(border: Border.all(width: 2, color: Colors.grey)),
-        width: 50,
-        height: 50,
-        child: const Text(
-          "T",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 40),
-          textAlign: TextAlign.center,
-        ),
-      ));
-      idx++;
-    }
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: children,
-    );
-  }
-
-  Column getBoard() {
-    var idx = 0;
-
-    List<Widget> children = [];
-
-    while (idx < state.tries) {
-      children.add(getRow());
-      idx++;
-    }
-    return Column(
-        mainAxisAlignment: MainAxisAlignment.center, children: children);
-  }
+  const Board({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return getBoard();
+    var gameState = context.watch<GameState>();
+    var guesses = gameState.guesses;
+    var currentGuess = gameState.currentGuess;
+    var rowIdx = 0;
+    var b = <Widget>[];
+
+    while (rowIdx < GameState.tries) {
+      var guess = "";
+      if (rowIdx <= guesses.length) {
+        guess = rowIdx == guesses.length ? currentGuess : guesses[rowIdx];
+      }
+      var lidx = -1;
+      var letters = gameState.validateWord(guess).map((s) {
+        lidx++;
+        var txt = lidx >= guess.length ? "" : guess[lidx];
+        var st = rowIdx == guesses.length ? LetterState.none : s;
+        return Letter(txt, st);
+      }).toList();
+      b.add(Flexible(
+        child: AnimatedRow(
+            mainAxisAlignment: MainAxisAlignment.center,
+            letters: letters,
+            rowIdx: rowIdx),
+      ));
+      rowIdx++;
+    }
+
+    return Column(mainAxisAlignment: MainAxisAlignment.center, children: b);
   }
 }

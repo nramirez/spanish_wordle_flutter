@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:wordle/components/qwerty.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import 'package:wordle/game_state.dart';
 
-import 'components/board.dart';
+import 'components/home.dart';
 
-void main() {
-  runApp(const MyApp());
+Future main() async {
+  runApp(MultiProvider(
+    providers: [ChangeNotifierProvider<GameState>(create: (_) => GameState())],
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -13,44 +17,33 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var gameState = context.read<GameState>();
+
+    // initialize the array
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Wordle Spanish',
+      title: 'Plbreo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Wordle Spanish'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  GameState state = GameState();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: Text(
-          widget.title,
-          style:
-              const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-        ),
+      home: Focus(
+        autofocus: true,
+        child: const MyHomePage(title: 'Plbreo'),
+        onKey: (FocusNode node, RawKeyEvent event) {
+          if (event is RawKeyDownEvent) {
+            if (event.character?.isNotEmpty == true) {
+              gameState.updateCurrentGuess(event.character.toString());
+            }
+            if (event.logicalKey == LogicalKeyboardKey.enter) {
+              gameState.updateCurrentGuess("enter");
+            }
+            if (event.logicalKey == LogicalKeyboardKey.backspace) {
+              gameState.updateCurrentGuess("delete");
+            }
+          }
+          return KeyEventResult.handled;
+        },
       ),
-      body: Center(
-        child: Board(state: state),
-      ),
-      persistentFooterButtons: const [Qwerty()],
     );
   }
 }
